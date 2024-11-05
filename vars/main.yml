@@ -1,0 +1,19 @@
+otel_collector_service_user: "{{ otel_user }}"
+
+otel_collector_receivers:
+  journald:
+    units: "{{ otel_units }}"
+
+otel_collector_processors:
+  batch:
+
+otel_collector_exporters:
+  otlp:
+    endpoint: "{{ otel_endpoint }}"
+
+otel_collector_service:
+  pipelines:
+    logs:
+      receivers: [journald]
+      processors: [batch]
+      exporters: [otlp]
