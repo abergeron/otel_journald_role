@@ -1,0 +1,22 @@
+---
+- name: Install otel collector
+  ansible.builtin.import_role:
+    name: grafana.grafana.opentelemetry_collector
+    tasks_from: install
+
+- name: Allow journald access to the otel user
+  ansible.builtin.user:
+    name: "{{ otel_collector_service_user }}"
+    groups: ["systemd-journal"]
+    append: true
+  
+- name: Configure otel collector
+  ansible.builtin.import_role:
+    name: grafana.grafana.opentelemetry_collector
+    tasks_from: configure
+
+- name: Setup otel service
+  ansible.builtin.import_role:
+    name: grafana.grafana.opentelemetry_collector
+    tasks_from: service
+    
