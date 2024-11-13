@@ -1,0 +1,17 @@
+---
+dependencies: []
+
+galaxy_info:
+  role_name: otel_journald_role
+  author: "Arnaud Bergeron, Olivier Breuleux"
+  description: Export journald entries to Loki endpoint through OpenTelemetry
+  company: "MILA"
+  license: "MIT"
+  min_ansible_version: "2.15"
+  platforms:
+    - name: Debian
+      versions:
+        - all
+    - name: Ubuntu
+      versions:
+        - all

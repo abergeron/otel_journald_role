@@ -3,17 +3,57 @@ otel_collector_service_user: "{{ otel_user }}"
 otel_collector_receivers:
   journald:
     units: "{{ otel_units }}"
+    operators:
+    # Loki maps resource.service.name to index service_name
+    - type: copy
+      from: body._SYSTEMD_UNIT
+      to: resource["service.name"]
+    # If UNIT is defined, we'll use that instead
+    # e.g. when _SYSTEMD_UNIT is init.scope
+    - type: copy
+      from: body.UNIT
+      to: resource["service.name"]
+    # Loki maps resource.service.instance.id to index service_instance_id
+    - type: copy
+      from: body._HOSTNAME
+      to: resource["service.instance.id"]
+    # This operator sets severity_number and severity_text, which Loki will map to a level
+    # Partly useless because everything that's logged from stdout has PRIORITY=6
+    - type: severity_parser
+      parse_from: body.PRIORITY
+      mapping:
+        critical:
+          min: 0
+          max: 2
+        error: 3
+        warn: 4
+        info:
+          min: 5
+          max: 6
+        debug: 7
+    # Move the keys in the body to the attributes
+    - type: copy
+      from: body
+      to: attributes.TMP
+    - type: flatten
+      field: attributes.TMP
+    # Use MESSAGE as the body/line for Loki
+    - type: copy
+      from: attributes.MESSAGE
+      to: body
 
 otel_collector_processors:
   batch:
 
 otel_collector_exporters:
-  otlp:
+  otlphttp/logs:
     endpoint: "{{ otel_endpoint }}"
+    tls:
+      insecure: true
 
 otel_collector_service:
   pipelines:
     logs:
       receivers: [journald]
       processors: [batch]
-      exporters: [otlp]
+      exporters: [otlphttp/logs]
